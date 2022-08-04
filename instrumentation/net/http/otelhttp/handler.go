@@ -207,6 +207,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Add metrics
 	attributes := append(labeler.Get(), semconv.HTTPServerMetricAttributesFromHTTPRequest(h.operation, r)...)
+
+	//self add status_code
+	if rww.statusCode > 0 {
+		attributes = append(attributes, semconv.HTTPAttributesFromHTTPStatusCode(rww.statusCode)...)
+	}
+
 	h.counters[RequestContentLength].Add(ctx, bw.read, attributes...)
 	h.counters[ResponseContentLength].Add(ctx, rww.written, attributes...)
 
