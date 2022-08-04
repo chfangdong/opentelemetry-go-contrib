@@ -140,7 +140,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	opts = append([]trace.SpanStartOption{
 		trace.WithAttributes(semconv.NetAttributesFromHTTPRequest("tcp", r)...),
 		trace.WithAttributes(semconv.EndUserAttributesFromHTTPRequest(r)...),
-		trace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(h.operation, "", r)...),
+		trace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(h.operation, r.RequestURI, r)...), //self add route
 	}, opts...) // start with the configured options
 
 	tracer := h.tracer
@@ -208,10 +208,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Add metrics
 	attributes := append(labeler.Get(), semconv.HTTPServerMetricAttributesFromHTTPRequest(h.operation, r)...)
 
-	//self add status_code
+	//self add status_code and HTTPRouteKey
 	if rww.statusCode > 0 {
 		attributes = append(attributes, semconv.HTTPAttributesFromHTTPStatusCode(rww.statusCode)...)
 	}
+	attributes = append(attributes, semconv.HTTPRouteKey.String(r.RequestURI))
 
 	h.counters[RequestContentLength].Add(ctx, bw.read, attributes...)
 	h.counters[ResponseContentLength].Add(ctx, rww.written, attributes...)
