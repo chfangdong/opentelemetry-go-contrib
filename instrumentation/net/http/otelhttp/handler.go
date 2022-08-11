@@ -212,7 +212,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if rww.statusCode > 0 {
 		attributes = append(attributes, semconv.HTTPAttributesFromHTTPStatusCode(rww.statusCode)...)
 	}
-	attributes = append(attributes, semconv.HTTPRouteKey.String(r.RequestURI))
+	attributes = append(attributes, semconv.HTTPRouteKey.String(r.URL.Path))
 
 	h.counters[RequestContentLength].Add(ctx, bw.read, attributes...)
 	h.counters[ResponseContentLength].Add(ctx, rww.written, attributes...)
